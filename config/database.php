@@ -5,7 +5,7 @@ class Database {
 
     private function __construct() {
         try {
-            $this->pdo = new PDO("mysql:host=localhost;dbname=sisho;charset=utf8", "root", "");
+            $this->pdo = new PDO("mysql:host=localhost;dbname=sisho;charset=utf8", "root", "root");
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             die("Error de conexión: " . $e->getMessage());
