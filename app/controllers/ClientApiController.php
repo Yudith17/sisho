@@ -2,26 +2,27 @@
 require_once __DIR__ . '/../models/ClientApi.php';
 
 class ClientApiController {
-    private $clientModel;
+    private $clientApiModel;
 
     public function __construct() {
-        $this->clientModel = new ClientApi(Database::getInstance());
+        $this->clientApiModel = new ClientApi(Database::getInstance());
     }
 
     public function index() {
-        $clients = $this->clientModel->getAll();
+        $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/client_api/index.php';
     }
 
     public function create() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->clientModel->create(
+            $this->clientApiModel->create(
                 $_POST['ruc'],
                 $_POST['razon_social'],
                 $_POST['telefono'],
-                $_POST['correo']
+                $_POST['correo'],
+                $_POST['estado']
             );
-            header("Location: index.php?controller=client_api&action=index");
+            header("Location: index.php?controller=clientapi&action=index");
             exit;
         }
         require __DIR__ . '/../views/client_api/create.php';
@@ -32,7 +33,7 @@ class ClientApiController {
         if (!$id) die("ID no especificado.");
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->clientModel->update(
+            $this->clientApiModel->update(
                 $id,
                 $_POST['ruc'],
                 $_POST['razon_social'],
@@ -40,10 +41,10 @@ class ClientApiController {
                 $_POST['correo'],
                 $_POST['estado']
             );
-            header("Location: index.php?controller=client_api&action=index");
+            header("Location: index.php?controller=clientapi&action=index");
             exit;
         } else {
-            $client = $this->clientModel->find($id);
+            $client = $this->clientApiModel->find($id);
             require __DIR__ . '/../views/client_api/edit.php';
         }
     }
@@ -51,8 +52,8 @@ class ClientApiController {
     public function delete() {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            $this->clientModel->delete($id);
-            header("Location: index.php?controller=client_api&action=index");
+            $this->clientApiModel->delete($id);
+            header("Location: index.php?controller=clientapi&action=index");
             exit;
         }
     }
@@ -60,7 +61,7 @@ class ClientApiController {
     public function view() {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            $client = $this->clientModel->find($id);
+            $client = $this->clientApiModel->find($id);
             require __DIR__ . '/../views/client_api/view.php';
         }
     }

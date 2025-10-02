@@ -4,14 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hoteles en Huanta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoteles en Huanta</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -24,6 +16,7 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --info: #8b5cf6;
             --background: #f8fafc;
             --surface: #ffffff;
             --text-primary: #1e293b;
@@ -125,6 +118,71 @@
         .btn-danger:hover {
             background: #dc2626;
             transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        /* Menu de Navegación */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
         /* Card Principal */
@@ -377,6 +435,10 @@
                 flex-wrap: wrap;
             }
 
+            .nav-menu {
+                justify-content: center;
+            }
+
             .filters {
                 flex-direction: column;
             }
@@ -414,7 +476,7 @@
                 font-size: 24px;
             }
 
-            .btn {
+            .btn, .nav-btn {
                 padding: 8px 16px;
                 font-size: 13px;
             }
@@ -426,13 +488,17 @@
             .card-title {
                 font-size: 18px;
             }
+
+            .nav-menu {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1 class="app-title"><i class="fas fa-hotel"></i> Hoteles en Huanta</h1>
+            <h1 class="app-title"><i class="fas fa-hotel"></i> Sistema de Hoteles Huanta</h1>
             <div class="user-actions">
                 <a href="index.php?controller=hotel&action=create" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Agregar Hotel
@@ -445,9 +511,25 @@
     </header>
     
     <div class="container">
+        <!-- Menú de Navegación -->
+        <div class="nav-menu">
+            <a href="index.php?controller=hotel&action=index" class="nav-btn active">
+                <i class="fas fa-hotel"></i> Hoteles
+            </a>
+            <a href="index.php?controller=clientapi&action=index" class="nav-btn">
+                <i class="fas fa-users"></i> Clientes API
+            </a>
+            <a href="index.php?controller=tokenapi&action=index" class="nav-btn">
+                <i class="fas fa-key"></i> Tokens API
+            </a>
+            <a href="index.php?controller=countrequest&action=index" class="nav-btn">
+                <i class="fas fa-chart-bar"></i> Estadísticas API
+            </a>
+        </div>
+
         <div class="filters">
             <div class="search-box">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" placeholder="Buscar hoteles...">
             </div>
             
@@ -473,239 +555,149 @@
             </div>
         </div>
         
-        <div class="card">
+        <div class="main-card">
             <div class="card-header">
                 <h2 class="card-title"><i class="fas fa-list"></i> Lista de Hoteles</h2>
                 <span><?php echo count($hotels); ?> hoteles registrados</span>
             </div>
-            <div class="card-body">
-                <div class="table-container">
-                    <table>
-                        <thead>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Ubicación</th>
+                            <th>Contacto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($hotels)): ?>
+                            <?php foreach ($hotels as $h): ?>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Descripción</th>
-                                <th>Ubicación</th>
-                                <th>Contacto</th>
-                                <th>Acciones</th>
+                                <td>
+                                    <div class="hotel-name"><?= $h['name'] ?></div>
+                                    <div class="hotel-id">ID: <?= $h['id'] ?></div>
+                                </td>
+                                <td>
+                                    <div class="hotel-category">
+                                        <?php 
+                                        $stars = isset($h['category']) ? $h['category'] : 0;
+                                        for ($i = 0; $i < 5; $i++): 
+                                        ?>
+                                            <span class="star"><?= $i < $stars ? '★' : '☆' ?></span>
+                                        <?php endfor; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="hotel-description">
+                                        <?= isset($h['description']) ? (strlen($h['description']) > 50 ? substr($h['description'], 0, 50) . '...' : $h['description']) : 'Sin descripción' ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div><strong>Dirección:</strong> <?= $h['address'] ?></div>
+                                    <div><strong>Distrito:</strong> <?= isset($h['district']) ? $h['district'] : 'N/A' ?></div>
+                                    <div><strong>Provincia:</strong> <?= isset($h['province']) ? $h['province'] : 'N/A' ?></div>
+                                </td>
+                                <td>
+                                    <div class="hotel-contact">
+                                        <?php if (isset($h['phone'])): ?>
+                                            <div class="contact-item">
+                                                <i class="fas fa-phone"></i> <?= $h['phone'] ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (isset($h['email'])): ?>
+                                            <div class="contact-item">
+                                                <i class="fas fa-envelope"></i> <?= $h['email'] ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (isset($h['website'])): ?>
+                                            <div class="contact-item">
+                                                <i class="fas fa-globe"></i> 
+                                                <a href="<?= $h['website'] ?>" target="_blank">Sitio web</a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="index.php?controller=hotel&action=view&id=<?= $h['id'] ?>" class="action-btn action-view">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a href="index.php?controller=hotel&action=edit&id=<?= $h['id'] ?>" class="action-btn action-edit">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <a href="index.php?controller=hotel&action=delete&id=<?= $h['id'] ?>" class="action-btn action-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar este hotel?')">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($hotels)): ?>
-                                <?php foreach ($hotels as $h): ?>
-                                <tr class="animate-on-scroll">
-                                    <td>
-                                        <div class="hotel-name"><?= $h['name'] ?></div>
-                                        <small>ID: <?= $h['id'] ?></small>
-                                    </td>
-                                    <td>
-                                        <div class="hotel-category">
-                                            <?php 
-                                            $stars = isset($h['category']) ? $h['category'] : 0;
-                                            for ($i = 0; $i < 5; $i++): 
-                                            ?>
-                                                <span class="star"><?= $i < $stars ? '★' : '☆' ?></span>
-                                            <?php endfor; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="hotel-description" title="<?= isset($h['description']) ? $h['description'] : '' ?>">
-                                            <?= isset($h['description']) ? (strlen($h['description']) > 50 ? substr($h['description'], 0, 50) . '...' : $h['description']) : 'Sin descripción' ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div><strong>Dirección:</strong> <?= $h['address'] ?></div>
-                                        <div><strong>Distrito:</strong> <?= isset($h['district']) ? $h['district'] : 'N/A' ?></div>
-                                        <div><strong>Provincia:</strong> <?= isset($h['province']) ? $h['province'] : 'N/A' ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="hotel-contact">
-                                            <?php if (isset($h['phone'])): ?>
-                                                <div class="contact-item">
-                                                    <i class="fas fa-phone"></i> <?= $h['phone'] ?>
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php if (isset($h['email'])): ?>
-                                                <div class="contact-item">
-                                                    <i class="fas fa-envelope"></i> <?= $h['email'] ?>
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php if (isset($h['website'])): ?>
-                                                <div class="contact-item">
-                                                    <i class="fas fa-globe"></i> 
-                                                    <a href="<?= $h['website'] ?>" target="_blank">Sitio web</a>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="actions">
-                                            <a href="index.php?controller=hotel&action=view&id=<?= $h['id'] ?>" class="action-btn action-view">
-                                                <i class="fas fa-eye"></i> Ver
-                                            </a>
-                                            <a href="index.php?controller=hotel&action=edit&id=<?= $h['id'] ?>" class="action-btn action-edit">
-                                                <i class="fas fa-edit"></i> Editar
-                                            </a>
-                                            <a href="index.php?controller=hotel&action=delete&id=<?= $h['id'] ?>" class="action-btn action-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar este hotel?')">
-                                                <i class="fas fa-trash"></i> Eliminar
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6">
-                                        <div class="empty-state">
-                                            <i class="fas fa-hotel"></i>
-                                            <p>No hay hoteles registrados</p>
-                                            <a href="index.php?controller=hotel&action=create" class="btn btn-primary">
-                                                <i class="fas fa-plus"></i> Agregar primer hotel
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="fas fa-hotel"></i>
+                                        <p>No hay hoteles registrados</p>
+                                        <a href="index.php?controller=hotel&action=create" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Agregar primer hotel
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Smooth animations on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                }
-            });
-        }, observerOptions);
-
-        // Observe all animation elements
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
-            observer.observe(el);
-        });
-
-        // Enhanced table row animations
-        const tableRows = document.querySelectorAll('tbody tr');
-        tableRows.forEach((row, index) => {
-            row.style.animationDelay = `${index * 0.1}s`;
-            row.classList.add('animate-on-scroll');
-        });
-
-        // Efecto de confirmación mejorado para eliminación
-        document.querySelectorAll('.action-delete').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Add shake animation
-                this.style.animation = 'shake 0.5s ease-in-out';
-                
-                if (!confirm('¿Estás seguro de que deseas eliminar este hotel? Esta acción no se puede deshacer.')) {
-                    e.preventDefault();
-                    // Reset animation
-                    setTimeout(() => {
-                        this.style.animation = '';
-                    }, 500);
-                }
-            });
-        });
-        
-        // Búsqueda en tiempo real mejorada
+        // Búsqueda en tiempo real
         const searchInput = document.querySelector('.search-input');
-        let searchTimeout;
+        const tableRows = document.querySelectorAll('tbody tr');
         
         searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            const searchBox = this.parentElement;
+            const searchText = this.value.toLowerCase();
             
-            // Add loading state
-            searchBox.style.background = 'rgba(99, 102, 241, 0.1)';
-            
-            searchTimeout = setTimeout(() => {
-                const searchText = this.value.toLowerCase();
-                let visibleCount = 0;
-                
-                tableRows.forEach((row, index) => {
-                    const text = row.textContent.toLowerCase();
-                    const shouldShow = text.includes(searchText);
-                    
-                    if (shouldShow) {
-                        row.style.display = '';
-                        row.style.animationDelay = `${visibleCount * 0.05}s`;
-                        row.classList.add('animate-on-scroll');
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                        row.classList.remove('animate-on-scroll');
-                    }
-                });
-                
-                // Reset search box style
-                searchBox.style.background = '';
-                
-                // Update results counter
-                const counter = document.querySelector('.card-header span');
-                if (counter) {
-                    counter.textContent = `${visibleCount} hoteles encontrados`;
-                    counter.style.animation = 'pulse 0.5s ease-in-out';
-                    setTimeout(() => {
-                        counter.style.animation = '';
-                    }, 500);
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
-            }, 300);
+            });
         });
-        
-        // Filtrado por categoría mejorado
-        const categoryFilter = document.querySelector('.filter-select');
+
+        // Filtrado por categoría
+        const categoryFilter = document.querySelectorAll('.filter-select')[0];
         categoryFilter.addEventListener('change', function() {
             const value = this.value;
-            let visibleCount = 0;
             
-            // Add transition effect
-            this.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 200);
-            
-            tableRows.forEach((row, index) => {
+            tableRows.forEach(row => {
+                if (!value) {
+                    row.style.display = '';
+                    return;
+                }
+                
                 const starElements = row.querySelectorAll('.star');
                 const filledStars = Array.from(starElements).filter(star => star.textContent === '★').length;
                 
-                const shouldShow = !value || value == filledStars;
-                
-                if (shouldShow) {
+                if (value == filledStars) {
                     row.style.display = '';
-                    row.style.animationDelay = `${visibleCount * 0.05}s`;
-                    row.classList.add('animate-on-scroll');
-                    visibleCount++;
                 } else {
                     row.style.display = 'none';
-                    row.classList.remove('animate-on-scroll');
                 }
             });
-            
-            // Update results counter
-            const counter = document.querySelector('.card-header span');
-            if (counter) {
-                counter.textContent = `${visibleCount} hoteles encontrados`;
-                counter.style.animation = 'pulse 0.5s ease-in-out';
-                setTimeout(() => {
-                    counter.style.animation = '';
-                }, 500);
-            }
         });
 
-        // Enhanced button hover effects
-        document.querySelectorAll('.btn, .action-btn').forEach(btn => {
+        // Efectos hover
+        document.querySelectorAll('.btn, .action-btn, .nav-btn').forEach(btn => {
             btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px) scale(1.05)';
+                this.style.transform = 'translateY(-1px)';
             });
             
             btn.addEventListener('mouseleave', function() {
@@ -713,84 +705,24 @@
             });
         });
 
-        // Parallax effect for header
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const header = document.querySelector('header');
-            if (header) {
-                header.style.transform = `translateY(${scrolled * 0.5}px)`;
+        // Navegación activa
+        const currentPage = window.location.href;
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            if (btn.href === currentPage) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
         });
 
-        // Add shake animation keyframes
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-                20%, 40%, 60%, 80% { transform: translateX(2px); }
-            }
-            
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize animations after page load
-        window.addEventListener('load', () => {
-            // Trigger initial animations
-            document.querySelectorAll('.animate-on-scroll').forEach((el, index) => {
-                setTimeout(() => {
-                    el.classList.add('in-view');
-                }, index * 100);
-            });
-        });
-
-        // Add ripple effect to buttons
-        document.querySelectorAll('.btn, .action-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.cssText = `
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    left: ${x}px;
-                    top: ${y}px;
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    transform: scale(0);
-                    animation: ripple 0.6s ease-out;
-                    pointer-events: none;
-                `;
-                
-                this.style.position = 'relative';
-                this.style.overflow = 'hidden';
-                this.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
-
-        // Add ripple animation
-        const rippleStyle = document.createElement('style');
-        rippleStyle.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(2);
-                    opacity: 0;
+        // Confirmación para eliminar
+        document.querySelectorAll('.action-delete').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (!confirm('¿Estás seguro de que deseas eliminar este hotel? Esta acción no se puede deshacer.')) {
+                    e.preventDefault();
                 }
-            }
-        `;
-        document.head.appendChild(rippleStyle);
+            });
+        });
     </script>
 </body>
 </html>

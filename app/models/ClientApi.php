@@ -8,36 +8,41 @@ class ClientApi {
         $this->db = $pdo ?? Database::getInstance();
     }
 
+    // Obtener todos los clientes API
     public function getAll() {
-        $stmt = $this->db->query("SELECT * FROM client_api ORDER BY id DESC");
+        $stmt = $this->db->query("SELECT * FROM Cliente_Api ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Buscar un cliente por ID
     public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM client_api WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM Cliente_Api WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function create($ruc, $razon_social, $telefono, $correo) {
+    // Crear un nuevo cliente API
+    public function create($ruc, $razon_social, $telefono, $correo, $estado) {
         $stmt = $this->db->prepare("
-            INSERT INTO client_api (ruc, razon_social, telefono, correo)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO Cliente_Api (ruc, razon_social, telefono, correo, estado)
+            VALUES (?, ?, ?, ?, ?)
         ");
-        return $stmt->execute([$ruc, $razon_social, $telefono, $correo]);
+        return $stmt->execute([$ruc, $razon_social, $telefono, $correo, $estado]);
     }
 
+    // Editar cliente API
     public function update($id, $ruc, $razon_social, $telefono, $correo, $estado) {
         $stmt = $this->db->prepare("
-            UPDATE client_api
-            SET ruc = ?, razon_social = ?, telefono = ?, correo = ?, estado = ?
-            WHERE id = ?
+            UPDATE Cliente_Api 
+            SET ruc=?, razon_social=?, telefono=?, correo=?, estado=?
+            WHERE id=?
         ");
         return $stmt->execute([$ruc, $razon_social, $telefono, $correo, $estado, $id]);
     }
 
+    // Eliminar cliente API
     public function delete($id) {
-        $stmt = $this->db->prepare("DELETE FROM client_api WHERE id = ?");
+        $stmt = $this->db->prepare("DELETE FROM Cliente_Api WHERE id = ?");
         return $stmt->execute([$id]);
     }
 }

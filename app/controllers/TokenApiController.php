@@ -3,49 +3,61 @@ require_once __DIR__ . '/../models/TokenApi.php';
 require_once __DIR__ . '/../models/ClientApi.php';
 
 class TokenApiController {
-    private $tokenModel;
-    private $clientModel;
+    private $tokenApiModel;
+    private $clientApiModel;
 
     public function __construct() {
-        $this->tokenModel = new TokenApi(Database::getInstance());
-        $this->clientModel = new ClientApi(Database::getInstance());
+        $this->tokenApiModel = new TokenApi(Database::getInstance());
+        $this->clientApiModel = new ClientApi(Database::getInstance());
     }
 
     public function index() {
-        $tokens = $this->tokenModel->getAll();
+        $tokens = $this->tokenApiModel->getAll();
+        $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/token_api/index.php';
     }
 
     public function create() {
-        $clients = $this->clientModel->getAll();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->tokenModel->create(
-                $_POST['id_client_api'],
-                $_POST['token']
+            $token = $this->tokenApiModel->generateToken();
+            $this->tokenApiModel->create(
+                $_POST['id_cliente_api'],
+                $token,
+                $_POST['estado']
             );
-            header("Location: index.php?controller=token_api&action=index");
+            header("Location: index.php?controller=tokenapi&action=index");
             exit;
         }
+        
+        // CORRECCIÓN: Obtener y pasar los clientes a la vista
+        $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/token_api/create.php';
     }
 
     public function edit() {
         $id = $_GET['id'] ?? null;
         if (!$id) die("ID no especificado.");
-
-        $clients = $this->clientModel->getAll();
-
+    
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->tokenModel->update(
+            // Validar que el token no esté vacío
+            $token = $_POST['token'] ?? '';
+            if (empty($token)) {
+                $_SESSION['error'] = "El token no puede estar vacío";
+                header("Location: index.php?controller=tokenapi&action=edit&id=" . $id);
+                exit;
+            }
+    
+            $this->tokenApiModel->update(
                 $id,
-                $_POST['id_client_api'],
-                $_POST['token'],
+                $_POST['id_cliente_api'],
+                $token, // Usar la variable validada
                 $_POST['estado']
             );
-            header("Location: index.php?controller=token_api&action=index");
+            header("Location: index.php?controller=tokenapi&action=index");
             exit;
         } else {
-            $token = $this->tokenModel->find($id);
+            $token = $this->tokenApiModel->find($id);
+            $clients = $this->clientApiModel->getAll();
             require __DIR__ . '/../views/token_api/edit.php';
         }
     }
@@ -53,8 +65,8 @@ class TokenApiController {
     public function delete() {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            $this->tokenModel->delete($id);
-            header("Location: index.php?controller=token_api&action=index");
+            $this->tokenApiModel->delete($id);
+            header("Location: index.php?controller=tokenapi&action=index");
             exit;
         }
     }
@@ -62,7 +74,7 @@ class TokenApiController {
     public function view() {
         $id = $_GET['id'] ?? null;
         if ($id) {
-            $token = $this->tokenModel->find($id);
+            $token = $this->tokenApiModel->find($id);
             require __DIR__ . '/../views/token_api/view.php';
         }
     }
