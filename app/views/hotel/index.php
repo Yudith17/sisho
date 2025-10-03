@@ -613,10 +613,7 @@
                                             </div>
                                         <?php endif; ?>
                                         <?php if (isset($h['website'])): ?>
-                                            <div class="contact-item">
-                                                <i class="fas fa-globe"></i> 
-                                                <a href="<?= $h['website'] ?>" target="_blank">Sitio web</a>
-                                            </div>
+                                           
                                         <?php endif; ?>
                                     </div>
                                 </td>
