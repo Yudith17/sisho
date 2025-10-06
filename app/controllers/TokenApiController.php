@@ -19,9 +19,14 @@ class TokenApiController {
 
     public function create() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $token = $this->tokenApiModel->generateToken();
+            // OBTENER el id_cliente_api del formulario
+            $id_cliente_api = $_POST['id_cliente_api'] ?? null;
+            
+            // CORRECCIÓN: Pasar el id_cliente_api como parámetro
+            $token = $this->tokenApiModel->generateToken($id_cliente_api);
+            
             $this->tokenApiModel->create(
-                $_POST['id_cliente_api'],
+                $id_cliente_api,
                 $token,
                 $_POST['estado']
             );
@@ -29,7 +34,6 @@ class TokenApiController {
             exit;
         }
         
-        // CORRECCIÓN: Obtener y pasar los clientes a la vista
         $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/token_api/create.php';
     }
@@ -39,7 +43,6 @@ class TokenApiController {
         if (!$id) die("ID no especificado.");
     
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Validar que el token no esté vacío
             $token = $_POST['token'] ?? '';
             if (empty($token)) {
                 $_SESSION['error'] = "El token no puede estar vacío";
@@ -50,7 +53,7 @@ class TokenApiController {
             $this->tokenApiModel->update(
                 $id,
                 $_POST['id_cliente_api'],
-                $token, // Usar la variable validada
+                $token,
                 $_POST['estado']
             );
             header("Location: index.php?controller=tokenapi&action=index");
