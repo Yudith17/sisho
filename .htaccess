@@ -3,3 +3,13 @@ RewriteEngine On
 # Redirige todo a public/index.php
 RewriteCond %{REQUEST_URI} !^/public/
 RewriteRule ^(.*)$ public/index.php [L]
+RewriteEngine On
+
+# Rutas de API
+RewriteRule ^api/client/search$ index.php?url=api/client/search [QSA,L]
+RewriteRule ^api/client/view/([0-9]+)$ index.php?url=api/client/view/$1&id=$1 [QSA,L]
+
+# Rutas normales MVC
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?controller=$1&action=index [QSA,L]

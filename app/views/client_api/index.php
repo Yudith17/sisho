@@ -3,6 +3,49 @@ $title = "Clientes API - Sistema de Hoteles";
 require_once __DIR__ . '/../layouts/header.php';
 ?>
 
+<style>
+.action-btn.action-view {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.action-btn.action-view:hover {
+    background-color: #138496;
+}
+
+.action-btn.action-search {
+    background-color: #28a745;
+    color: white;
+}
+
+.action-btn.action-search:hover {
+    background-color: #218838;
+}
+
+.actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background-color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.action-btn i {
+    font-size: 11px;
+}
+</style>
+
 <div class="main-card">
     <div class="card-header">
         <h2 class="card-title"><i class="fas fa-users"></i> Lista de Clientes API</h2>
@@ -44,12 +87,14 @@ require_once __DIR__ . '/../layouts/header.php';
                             </td>
                             <td>
                                 <div class="actions">
-                                    <a href="index.php?controller=clientapi&action=edit&id=<?= $client['id'] ?>" class="action-btn action-edit">
-                                        <i class="fas fa-edit"></i> Editar
+                                    <!-- SOLO VER Y BUSCAR -->
+                                    <a href="index.php?controller=clientapi&action=view&id=<?= $client['id'] ?>" 
+                                       class="action-btn action-view">
+                                        <i class="fas fa-eye"></i> Ver
                                     </a>
-                                    <a href="index.php?controller=clientapi&action=delete&id=<?= $client['id'] ?>" class="action-btn action-delete" 
-                                       onclick="return confirmDelete('¿Estás seguro de eliminar este cliente API?')">
-                                        <i class="fas fa-trash"></i> Eliminar
+                                    <a href="index.php?controller=clientapi&action=search&id=<?= $client['id'] ?>" 
+                                       class="action-btn action-search">
+                                        <i class="fas fa-search"></i> Buscar
                                     </a>
                                 </div>
                             </td>

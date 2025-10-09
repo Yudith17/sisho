@@ -2,11 +2,21 @@
 require_once __DIR__ . '/../../config/database.php';
 
 class TokenApi {
-    private $db;
-
-    public function __construct($pdo = null) {
-        $this->db = $pdo ?? Database::getInstance();
-    }
+        private $db;
+    
+        public function __construct() {
+            $this->db = Database::getConnection();
+        }
+    
+        public function getByClientId($clientId) {
+            $stmt = $this->db->prepare("
+                SELECT * FROM Token 
+                WHERE Id_cliente_Api = ? 
+                ORDER BY Fecha_registro DESC
+            ");
+            $stmt->execute([$clientId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
     // Obtener todos los tokens
     public function getAll() {
