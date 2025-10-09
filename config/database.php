@@ -16,7 +16,6 @@ class Database {
                 ]
             );
         } catch (PDOException $e) {
-            // En producción, no mostrar el error completo al usuario
             error_log("Error de conexión: " . $e->getMessage());
             die("Error de conexión a la base de datos");
         }
@@ -29,7 +28,11 @@ class Database {
         return self::$instance->pdo;
     }
 
-    // Evitar la clonación y deserialización
+    // Método getConnection para compatibilidad
+    public static function getConnection() {
+        return self::getInstance();
+    }
+
     private function __clone() { }
     public function __wakeup() { }
 }
