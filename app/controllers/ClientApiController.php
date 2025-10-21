@@ -86,4 +86,17 @@ class ClientApiController {
             exit;
         }
     }
+
+    // ==================== NUEVA ACCIÓN PARA CLIENTE_API ====================
+    
+    public function cliente_api() {
+        // Esta acción carga directamente el archivo cliente_api.php sin requerir autenticación
+        // y sin pasar por las vistas del sistema
+        
+        // Incluir directamente el archivo cliente_api.php que está en la raíz
+        include __DIR__ . '/../../cliente_api.php';
+        exit; // Importante: salir para que no cargue el layout del sistema
+    }
+    // ==================== ACCIÓN PÚBLICA CLIENTE_API ====================
+
 }
