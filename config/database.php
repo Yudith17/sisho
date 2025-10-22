@@ -36,3 +36,4 @@ class Database {
     private function __clone() { }
     public function __wakeup() { }
 }
+?>
