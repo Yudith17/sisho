@@ -516,10 +516,9 @@
             <a href="index.php?controller=hotel&action=index" class="nav-btn active">
                 <i class="fas fa-hotel"></i> Hoteles
             </a>
-           <a href="index.php?controller=clientapi&action=index" class="nav-btn active">
-    <i>👥</i>
-    Clientes API
-</a>
+            <a href="index.php?controller=clientapi&action=index" class="nav-btn">
+                <i class="fas fa-users"></i> Clientes API
+            </a>
             <a href="index.php?controller=tokenapi&action=index" class="nav-btn">
                 <i class="fas fa-key"></i> Tokens API
             </a>
