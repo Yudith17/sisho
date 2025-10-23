@@ -75,6 +75,44 @@ class ClientApi {
             return null;
         }
     }
+     /**
+     * CREAR nuevo cliente API
+     */
+    public function create($data) {
+        try {
+            // Validar que el RUC no exista
+            $stmt = $this->pdo->prepare("SELECT id FROM Cliente_Api WHERE ruc = ?");
+            $stmt->execute([$data['ruc']]);
+            if ($stmt->fetch()) {
+                throw new Exception("El RUC ya está registrado");
+            }
+
+            // Validar que el correo no exista
+            $stmt = $this->pdo->prepare("SELECT id FROM Cliente_Api WHERE correo = ?");
+            $stmt->execute([$data['correo']]);
+            if ($stmt->fetch()) {
+                throw new Exception("El correo electrónico ya está registrado");
+            }
+
+            $sql = "INSERT INTO Cliente_Api (ruc, razon_social, telefono, correo, estado) 
+                    VALUES (?, ?, ?, ?, ?)";
+            
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                $data['ruc'],
+                $data['razon_social'],
+                $data['telefono'],
+                $data['correo'],
+                $data['estado']
+            ]);
+
+            return $this->pdo->lastInsertId();
+
+        } catch (PDOException $e) {
+            error_log("Error al crear cliente API: " . $e->getMessage());
+            throw new Exception("Error en la base de datos: " . $e->getMessage());
+        }
+    }
 
     /**
      * Registrar solicitud API

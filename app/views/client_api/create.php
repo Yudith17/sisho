@@ -8,7 +8,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <h2 class="card-title"><i class="fas fa-user-plus"></i> Nuevo Cliente API</h2>
     </div>
     <div class="card-body">
-        <form method="POST" action="index.php?controller=clientapi&action=create">
+        <form method="POST" action="index.php?controller=clientapi&action=store">
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="ruc">RUC *</label>

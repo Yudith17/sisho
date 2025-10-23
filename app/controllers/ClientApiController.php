@@ -82,6 +82,68 @@ class ClientApiController {
             exit;
         }
     }
+  /**
+     * Mostrar formulario de creación (GET)
+     */
+    public function create() {
+        if (!isset($_SESSION['usuario'])) {
+            header('Location: index.php?controller=auth&action=login');
+            exit;
+        }
+
+        require __DIR__ . '/../views/client_api/create.php';
+    }
+
+    /**
+     * Procesar creación de cliente (POST)
+     */
+    public function store() {
+        if (!isset($_SESSION['usuario'])) {
+            header('Location: index.php?controller=auth&action=login');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $data = [
+                    'ruc' => trim($_POST['ruc']),
+                    'razon_social' => trim($_POST['razon_social']),
+                    'telefono' => trim($_POST['telefono']),
+                    'correo' => trim($_POST['correo']),
+                    'estado' => $_POST['estado']
+                ];
+
+                // Validaciones básicas
+                if (empty($data['ruc']) || strlen($data['ruc']) !== 11) {
+                    throw new Exception("El RUC debe tener 11 dígitos");
+                }
+
+                if (empty($data['razon_social'])) {
+                    throw new Exception("La razón social es obligatoria");
+                }
+
+                if (empty($data['correo']) || !filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) {
+                    throw new Exception("El correo electrónico no es válido");
+                }
+
+                // Llamar al método create del modelo
+                $id = $this->clientApiModel->create($data);
+                
+                $_SESSION['success'] = "Cliente API creado exitosamente (ID: $id)";
+                header('Location: index.php?controller=clientapi&action=index');
+                exit;
+
+            } catch (Exception $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header('Location: index.php?controller=clientapi&action=create');
+                exit;
+            }
+        } else {
+            header('Location: index.php?controller=clientapi&action=create');
+            exit;
+        }
+    }
+
 
     // ==================== NUEVA ACCIÓN PARA CLIENTE_API ====================
     

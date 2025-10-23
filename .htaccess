@@ -9,10 +9,8 @@ RewriteRule ^ - [L]
 RewriteRule ^cliente_api\.php$ - [L]
 RewriteRule ^buscar_hoteles\.php$ - [L]
 RewriteRule ^debug_busqueda\.php$ - [L]
+RewriteRule ^login\.php$ - [L]  # <- AGREGAR ESTA LÍNEA
 RewriteRule ^api/public/ - [L]
-
-# 3. REDIRIGIR LA RAIZ AL LOGIN DEL SISTEMA MVC (CAMBIADO)
-RewriteRule ^$ index.php?controller=auth&action=login [L]
 
 # 4. RUTAS DEL SISTEMA MVC (pasan por index.php)
 RewriteCond %{REQUEST_FILENAME} !-f
