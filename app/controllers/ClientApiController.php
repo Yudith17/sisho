@@ -13,11 +13,7 @@ class ClientApiController {
     // ==================== ACCIÓN VER ====================
 
     public function index() {
-        // TEMPORAL: Comentado para desarrollo
-        // if (!isset($_SESSION['user_id'])) {
-        //     header('Location: index.php?controller=auth&action=login');
-        //     exit;
-        // }
+    
 
         $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/client_api/index.php';
