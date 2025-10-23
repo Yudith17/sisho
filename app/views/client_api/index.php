@@ -410,9 +410,9 @@
                 Hoteles
             </a>
             <a href="index.php?controller=clientapi&action=index" class="nav-btn active">
-                <i>👥</i>
-                Clientes API
-            </a>
+    <i>👥</i>
+    Clientes API
+</a>
             <a href="index.php?controller=tokenapi&action=index" class="nav-btn">
                 <i>🔑</i>
                 Tokens API

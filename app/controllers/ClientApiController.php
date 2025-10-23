@@ -3,7 +3,7 @@ require_once __DIR__ . '/../models/ClientApi.php';
 require_once __DIR__ . '/../models/CountRequest.php';
 require_once __DIR__ . '/../models/TokenApi.php';
 
-class ClientApiController {
+class ClientapiController {
     private $clientApiModel;
 
     public function __construct() {
