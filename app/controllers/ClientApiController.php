@@ -87,7 +87,7 @@ class ClientApiController {
      */
     public function create() {
         if (!isset($_SESSION['usuario'])) {
-            header('Location: index.php?controller=auth&action=login');
+            header('Location: index.php?controller=auth&action=index');
             exit;
         }
 
@@ -99,7 +99,7 @@ class ClientApiController {
      */
     public function store() {
         if (!isset($_SESSION['usuario'])) {
-            header('Location: index.php?controller=auth&action=login');
+            header('Location: index.php?controller=auth&action=index');
             exit;
         }
 
