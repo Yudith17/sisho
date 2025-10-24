@@ -13,7 +13,6 @@ class ClientApiController {
     // ==================== ACCIÓN VER ====================
 
     public function index() {
-    
 
         $clients = $this->clientApiModel->getAll();
         require __DIR__ . '/../views/client_api/index.php';
