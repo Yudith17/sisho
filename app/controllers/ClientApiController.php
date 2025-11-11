@@ -85,17 +85,25 @@ class ClientapiController {
      * Mostrar formulario de creación (GET)
      */
     public function create() {
-        if (!isset($_SESSION['usuario'])) {
-            header('Location: index.php?controller=auth&action=index');
-            exit;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $ruc = $_POST['ruc'] ?? '';
+            $razon_social = $_POST['razon_social'] ?? '';
+            $correo = $_POST['correo'] ?? '';
+            $telefono = $_POST['telefono'] ?? '';
+            $estado = $_POST['estado'] ?? 'activo';
+    
+            // Llamar al modelo para crear el cliente
+            $success = $this->clientApiModel->create($ruc, $razon_social, $correo, $telefono, $estado);
+            
+            if ($success) {
+                header("Location: index.php?controller=clientapi&action=index");
+                exit;
+            } else {
+                // Manejar error - puedes mostrar un mensaje
+                echo "Error al crear el cliente";
+            }
         }
-
-        require __DIR__ . '/../views/client_api/create.php';
     }
-
-    /**
-     * Procesar creación de cliente (POST)
-     */
     public function store() {
         if (!isset($_SESSION['usuario'])) {
             header('Location: index.php?controller=auth&action=index');

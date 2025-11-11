@@ -118,6 +118,16 @@
             transform: translateY(-1px);
         }
 
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+        }
+
         /* Menu de Navegación */
         .nav-menu {
             display: flex;
@@ -192,6 +202,99 @@
             border-radius: var(--radius);
             font-weight: 600;
             font-size: 14px;
+        }
+
+        /* Formulario Generar Token */
+        .generate-form {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .generate-form.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-help {
+            display: block;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
         }
 
         /* Tabla */
@@ -352,6 +455,10 @@
                 text-align: center;
             }
 
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
             th, td {
                 padding: 12px 8px;
                 font-size: 14px;
@@ -392,6 +499,16 @@
 
             .nav-menu {
                 flex-direction: column;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -438,6 +555,82 @@
             </a>
         </nav>
 
+        <!-- Botón para mostrar formulario -->
+        <div style="margin-bottom: 20px;">
+            <button type="button" id="showGenerateForm" class="btn btn-info">
+                <i>➕</i>
+                Generar Nuevo Token
+            </button>
+        </div>
+
+        <!-- Formulario para Generar Token -->
+        <div class="generate-form" id="generateForm">
+            <h3 class="form-title">
+                <i>🔑</i>
+                Nuevo Token API
+            </h3>
+            
+            <form method="POST" action="index.php?controller=tokenapi&action=create">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="id_cliente_api">Cliente API *</label>
+                        <select id="id_cliente_api" name="id_cliente_api" class="form-select" required>
+                            <option value="">Seleccionar cliente</option>
+                            <?php 
+                            // Obtener clientes activos desde la base de datos
+                            if (isset($clients) && !empty($clients)): 
+                                foreach ($clients as $client): 
+                                    $estado = $client['estado'] ?? $client['Estado'] ?? '';
+                                    $esActivo = ($estado == 'activo' || $estado == 'Active' || ($client['Estado'] ?? 0) == 1);
+                                    
+                                    if ($esActivo): 
+                            ?>
+                                        <option value="<?= $client['id'] ?>">
+                                            <?= htmlspecialchars($client['razon_social'] ?? $client['nombre'] ?? 'Cliente') ?> 
+                                            - <?= $client['ruc'] ?? $client['codigo'] ?? 'N/A' ?>
+                                        </option>
+                            <?php 
+                                    endif;
+                                endforeach;
+                            else: 
+                            ?>
+                                <option value="" disabled>No hay clientes disponibles</option>
+                            <?php endif; ?>
+                        </select>
+                        <span class="form-help">Seleccione un cliente API activo</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="estado">Estado *</label>
+                        <select id="estado" name="estado" class="form-select" required>
+                            <option value="1">Activo</option>
+                            <option value="0">Inactivo</option>
+                        </select>
+                        <span class="form-help">Estado del token</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius); padding: 15px; margin-bottom: 15px;">
+                        <p style="color: #0369a1; margin: 0; font-size: 14px;">
+                            <strong>💡 Información:</strong> El token se generará automáticamente con formato seguro al guardar.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i>🔑</i>
+                        Guardar Token
+                    </button>
+                    <button type="button" id="cancelGenerate" class="btn btn-secondary">
+                        <i>✕</i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Card Principal -->
         <div class="main-card">
             <div class="card-header">
@@ -469,10 +662,10 @@
                                     <div class="empty-state">
                                         <i>🔐</i>
                                         <p>No hay tokens API generados</p>
-                                        <a href="index.php?controller=tokenapi&action=create" class="btn btn-success">
+                                        <button type="button" id="showGenerateFormEmpty" class="btn btn-success">
                                             <i>➕</i>
                                             Generar Primer Token
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -532,6 +725,19 @@
     </div>
 
     <script>
+        // Mostrar/ocultar formulario de generación
+        document.getElementById('showGenerateForm').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.add('active');
+        });
+
+        document.getElementById('showGenerateFormEmpty').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.add('active');
+        });
+
+        document.getElementById('cancelGenerate').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.remove('active');
+        });
+
         // Mostrar token completo al hacer click
         document.querySelectorAll('.token-code').forEach(element => {
             element.addEventListener('click', function() {
@@ -540,6 +746,22 @@
                     alert('Token completo:\n\n' + fullToken);
                 }
             });
+        });
+
+        // Validación del formulario
+        document.querySelector('#generateForm form').addEventListener('submit', function(e) {
+            const cliente = document.getElementById('id_cliente_api').value;
+            
+            if (!cliente) {
+                e.preventDefault();
+                alert('❌ Por favor seleccione un cliente API');
+                return;
+            }
+
+            const confirmacion = confirm('¿Está seguro de generar un nuevo token para este cliente?');
+            if (!confirmacion) {
+                e.preventDefault();
+            }
         });
     </script>
 </body>

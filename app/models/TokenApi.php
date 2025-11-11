@@ -2,21 +2,21 @@
 require_once __DIR__ . '/../../config/database.php';
 
 class TokenApi {
-        private $db;
-    
-        public function __construct() {
-            $this->db = Database::getConnection();
-        }
-    
-        public function getByClientId($clientId) {
-            $stmt = $this->db->prepare("
-                SELECT * FROM Token 
-                WHERE Id_cliente_Api = ? 
-                ORDER BY Fecha_registro DESC
-            ");
-            $stmt->execute([$clientId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+    private $db;
+
+    public function __construct() {
+        $this->db = Database::getConnection();
+    }
+
+    public function getByClientId($clientId) {
+        $stmt = $this->db->prepare("
+            SELECT * FROM Token 
+            WHERE Id_cliente_Api = ? 
+            ORDER BY Fecha_registro DESC
+        ");
+        $stmt->execute([$clientId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Obtener todos los tokens
     public function getAll() {
@@ -84,17 +84,44 @@ class TokenApi {
         return $stmt->execute([$id]);
     }
 
-    // Generar token único con datos de la base de datos (REQUIERE ID)
-    public function generateToken($id_cliente_api) {
+    // MÉTODO MEJORADO: Generar token seguro único
+    public function generateToken($id_cliente_api = null) {
         try {
             // Validar que se proporcione un ID
             if ($id_cliente_api === null || $id_cliente_api === '') {
                 throw new Exception("ID de cliente API es requerido para generar el token");
             }
 
-            // Obtener datos del cliente API desde la base de datos
+            // Verificar que el cliente existe
             $cliente = $this->findClienteApi($id_cliente_api);
+            if (!$cliente) {
+                throw new Exception("Cliente API no encontrado con ID: " . $id_cliente_api);
+            }
+
+            // Generar un token seguro único (64 caracteres)
+            $token = bin2hex(random_bytes(32));
             
+            // Agregar prefijo con el ID del cliente para identificación
+            $prefix = 'cli_' . $id_cliente_api . '_';
+            $token = $prefix . $token;
+            
+            return $token;
+            
+        } catch (Exception $e) {
+            error_log("Error en TokenApi::generateToken: " . $e->getMessage());
+            throw new Exception("Error al generar token: " . $e->getMessage());
+        }
+    }
+
+    // MÉTODO ALTERNATIVO: Generar token con formato específico (como tu versión original)
+    public function generateTokenWithFormat($id_cliente_api) {
+        try {
+            if ($id_cliente_api === null || $id_cliente_api === '') {
+                throw new Exception("ID de cliente API es requerido para generar el token");
+            }
+
+            // Verificar que el cliente existe
+            $cliente = $this->findClienteApi($id_cliente_api);
             if (!$cliente) {
                 throw new Exception("Cliente API no encontrado con ID: " . $id_cliente_api);
             }
@@ -105,19 +132,19 @@ class TokenApi {
             // Obtener fecha actual en formato Ymd (año, mes, día)
             $fecha = date('Ymd');
             
-            // Formato: password-fecha-id_cliente_api (SIEMPRE con ID)
+            // Formato: password-fecha-id_cliente_api
             return "{$password}-{$fecha}-{$cliente['id']}";
             
         } catch (Exception $e) {
-            error_log("Error en TokenApi::generateToken: " . $e->getMessage());
+            error_log("Error en TokenApi::generateTokenWithFormat: " . $e->getMessage());
             throw new Exception("Error al generar token: " . $e->getMessage());
         }
     }
 
-    // Método completo para crear token automáticamente
+    // Método completo para crear token automáticamente (VERSIÓN MEJORADA)
     public function createAutoToken($id_cliente_api, $estado = 1) {
         try {
-            // Generar el token con datos de la BD (SIEMPRE con ID)
+            // Generar el token con el nuevo método seguro
             $token = $this->generateToken($id_cliente_api);
             
             // Insertar en la base de datos
@@ -146,5 +173,64 @@ class TokenApi {
                 'error' => $e->getMessage()
             ];
         }
+    }
+
+    // NUEVO MÉTODO: Crear token con formato específico si lo prefieres
+    public function createFormattedToken($id_cliente_api, $estado = 1) {
+        try {
+            // Generar el token con formato específico
+            $token = $this->generateTokenWithFormat($id_cliente_api);
+            
+            // Insertar en la base de datos
+            $stmt = $this->db->prepare("
+                INSERT INTO Token (Id_cliente_Api, Token, Estado)
+                VALUES (?, ?, ?)
+            ");
+            
+            $result = $stmt->execute([$id_cliente_api, $token, $estado]);
+            
+            if ($result) {
+                return [
+                    'success' => true,
+                    'token' => $token,
+                    'id' => $this->db->lastInsertId(),
+                    'id_cliente_api' => $id_cliente_api
+                ];
+            } else {
+                throw new Exception("Error al insertar token en la base de datos");
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error en TokenApi::createFormattedToken: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    // NUEVO MÉTODO: Verificar si un token existe
+    public function tokenExists($token) {
+        $stmt = $this->db->prepare("SELECT id FROM Token WHERE Token = ?");
+        $stmt->execute([$token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
+    }
+
+    // NUEVO MÉTODO: Generar token único que no exista en la BD
+    public function generateUniqueToken($id_cliente_api) {
+        $maxAttempts = 5;
+        $attempts = 0;
+        
+        while ($attempts < $maxAttempts) {
+            $token = $this->generateToken($id_cliente_api);
+            
+            if (!$this->tokenExists($token)) {
+                return $token;
+            }
+            
+            $attempts++;
+        }
+        
+        throw new Exception("No se pudo generar un token único después de $maxAttempts intentos");
     }
 }

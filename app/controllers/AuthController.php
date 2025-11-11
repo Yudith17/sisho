@@ -38,4 +38,8 @@ class AuthController {
         header("Location: index.php?controller=auth&action=login");
         exit;
     }
+
+    public function index() {
+      
+    }
 }

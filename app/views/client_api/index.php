@@ -118,6 +118,25 @@
             transform: translateY(-1px);
         }
 
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
         /* Menu de Navegación */
         .nav-menu {
             display: flex;
@@ -151,6 +170,90 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+
+        /* Formulario Nuevo Cliente */
+        .generate-form {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .generate-form.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-help {
+            display: block;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         /* Card Principal */
@@ -337,6 +440,10 @@
                 text-align: center;
             }
 
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
             th, td {
                 padding: 12px 8px;
                 font-size: 14px;
@@ -377,6 +484,16 @@
 
             .nav-menu {
                 flex-direction: column;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -423,6 +540,86 @@
             </a>
         </nav>
 
+        <!-- Botón para mostrar formulario -->
+        <div style="margin-bottom: 20px;">
+            <button type="button" id="showGenerateForm" class="btn btn-info">
+                <i>➕</i>
+                Nuevo Cliente API
+            </button>
+        </div>
+
+        <!-- Formulario para Nuevo Cliente -->
+        <div class="generate-form" id="generateForm">
+            <h3 class="form-title">
+                <i>👥</i>
+                Nuevo Cliente API
+            </h3>
+            
+            <form method="POST" action="index.php?controller=clientapi&action=create">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="ruc">RUC *</label>
+                        <input type="text" id="ruc" name="ruc" class="form-input" 
+                               placeholder="Ingrese RUC (11 dígitos)" required 
+                               pattern="[0-9]{11}" maxlength="11">
+                        <span class="form-help">RUC debe tener 11 dígitos numéricos</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="razon_social">Razón Social *</label>
+                        <input type="text" id="razon_social" name="razon_social" class="form-input" 
+                               placeholder="Ingrese razón social" required>
+                        <span class="form-help">Nombre legal de la empresa</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="correo">Correo Electrónico *</label>
+                        <input type="email" id="correo" name="correo" class="form-input" 
+                               placeholder="ejemplo@empresa.com" required>
+                        <span class="form-help">Correo electrónico válido</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" class="form-input" 
+                               placeholder="Ingrese número telefónico">
+                        <span class="form-help">Número de contacto opcional</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="estado">Estado *</label>
+                    <select id="estado" name="estado" class="form-select" required>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <span class="form-help">Estado del cliente API</span>
+                </div>
+
+                <div class="form-group">
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius); padding: 15px; margin-bottom: 15px;">
+                        <p style="color: #0369a1; margin: 0; font-size: 14px;">
+                            <strong>💡 Información:</strong> Todos los campos marcados con * son obligatorios. 
+                            El RUC y correo deben ser únicos en el sistema.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i>💾</i>
+                        Guardar Cliente
+                    </button>
+                    <button type="button" id="cancelGenerate" class="btn btn-secondary">
+                        <i>✕</i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Card Principal -->
         <div class="main-card">
             <div class="card-header">
@@ -455,10 +652,10 @@
                                     <div class="empty-state">
                                         <i>📭</i>
                                         <p>No hay clientes API registrados</p>
-                                        <a href="index.php?controller=clientapi&action=create" class="btn btn-success">
+                                        <button type="button" id="showGenerateFormEmpty" class="btn btn-success">
                                             <i>➕</i>
                                             Crear Primer Cliente
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -510,6 +707,62 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Mostrar/ocultar formulario de nuevo cliente
+        document.getElementById('showGenerateForm').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.add('active');
+        });
+
+        document.getElementById('showGenerateFormEmpty').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.add('active');
+        });
+
+        document.getElementById('cancelGenerate').addEventListener('click', function() {
+            document.getElementById('generateForm').classList.remove('active');
+        });
+
+        // Validación del RUC
+        document.getElementById('ruc').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
+
+        // Validación del formulario
+        document.querySelector('#generateForm form').addEventListener('submit', function(e) {
+            const ruc = document.getElementById('ruc').value;
+            const razonSocial = document.getElementById('razon_social').value;
+            const correo = document.getElementById('correo').value;
+            
+            if (!ruc || ruc.length !== 11) {
+                e.preventDefault();
+                alert('❌ El RUC debe tener exactamente 11 dígitos');
+                document.getElementById('ruc').focus();
+                return;
+            }
+
+            if (!razonSocial) {
+                e.preventDefault();
+                alert('❌ La razón social es obligatoria');
+                document.getElementById('razon_social').focus();
+                return;
+            }
+
+            if (!correo) {
+                e.preventDefault();
+                alert('❌ El correo electrónico es obligatorio');
+                document.getElementById('correo').focus();
+                return;
+            }
+
+            const confirmacion = confirm('¿Está seguro de crear este nuevo cliente API?');
+            if (!confirmacion) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

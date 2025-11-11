@@ -19,19 +19,19 @@ class TokenApiController {
 
     public function create() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // OBTENER el id_cliente_api del formulario
             $id_cliente_api = $_POST['id_cliente_api'] ?? null;
+            $estado = $_POST['estado'] ?? '1'; // Por defecto activo
             
-            // CORRECCIÓN: Pasar el id_cliente_api como parámetro
+            // Generar el token
             $token = $this->tokenApiModel->generateToken($id_cliente_api);
             
-            $this->tokenApiModel->create(
-                $id_cliente_api,
-                $token,
-                $_POST['estado']
-            );
-            header("Location: index.php?controller=tokenapi&action=index");
-            exit;
+            // Crear el registro
+            $success = $this->tokenApiModel->create($id_cliente_api, $token, $estado);
+            
+            if ($success) {
+                header("Location: index.php?controller=tokenapi&action=index");
+                exit;
+            }
         }
         
         $clients = $this->clientApiModel->getAll();

@@ -78,42 +78,19 @@ class ClientApi {
      /**
      * CREAR nuevo cliente API
      */
-    public function create($data) {
+    public function create($ruc, $razon_social, $correo, $telefono, $estado) {
         try {
-            // Validar que el RUC no exista
-            $stmt = $this->pdo->prepare("SELECT id FROM Cliente_Api WHERE ruc = ?");
-            $stmt->execute([$data['ruc']]);
-            if ($stmt->fetch()) {
-                throw new Exception("El RUC ya está registrado");
-            }
-
-            // Validar que el correo no exista
-            $stmt = $this->pdo->prepare("SELECT id FROM Cliente_Api WHERE correo = ?");
-            $stmt->execute([$data['correo']]);
-            if ($stmt->fetch()) {
-                throw new Exception("El correo electrónico ya está registrado");
-            }
-
-            $sql = "INSERT INTO Cliente_Api (ruc, razon_social, telefono, correo, estado) 
+            $sql = "INSERT INTO Cliente_Api (ruc, razon_social, correo, telefono, estado) 
                     VALUES (?, ?, ?, ?, ?)";
             
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                $data['ruc'],
-                $data['razon_social'],
-                $data['telefono'],
-                $data['correo'],
-                $data['estado']
-            ]);
-
-            return $this->pdo->lastInsertId();
-
+            return $stmt->execute([$ruc, $razon_social, $correo, $telefono, $estado]);
+            
         } catch (PDOException $e) {
-            error_log("Error al crear cliente API: " . $e->getMessage());
-            throw new Exception("Error en la base de datos: " . $e->getMessage());
+            error_log("Error en ClientApi::create: " . $e->getMessage());
+            return false;
         }
     }
-
     /**
      * Registrar solicitud API
      */
