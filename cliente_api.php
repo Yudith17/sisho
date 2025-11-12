@@ -52,7 +52,7 @@
         
         .search-form {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
+            grid-template-columns: 1fr 1fr auto auto;
             gap: 15px;
             align-items: end;
         }
@@ -85,7 +85,20 @@
             background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            height: 46px;
+        }
+
+        .btn-token {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
@@ -94,11 +107,11 @@
             height: 46px;
         }
         
-        .btn-search:hover {
+        .btn-search:hover, .btn-token:hover {
             transform: translateY(-2px);
         }
         
-        .btn-search:disabled {
+        .btn-search:disabled, .btn-token:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
@@ -127,6 +140,60 @@
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+
+        .token-section {
+            background: #e8f4fd;
+            border: 1px solid #b3d9f2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .token-info {
+            font-size: 1em;
+            color: #2c3e50;
+        }
+
+        .token-value {
+            font-family: monospace;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            word-break: break-all;
+            border: 2px dashed #3498db;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .token-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-redirect {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
         }
         
         .hotel-grid {
@@ -236,6 +303,10 @@
             h1 {
                 font-size: 2em;
             }
+
+            .token-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -266,6 +337,18 @@
                 </div>
                 
                 <button class="btn-search" id="btn_buscar">Buscar Hoteles</button>
+                <button class="btn-token" id="btn_token">Generar Token</button>
+            </div>
+        </div>
+
+        <div class="token-section" id="tokenSection">
+            <div class="token-info">
+                <strong>🔐 Token Generado Exitosamente</strong>
+                <div class="token-value" id="tokenValue"></div>
+                <div class="token-actions">
+                    <button class="btn-copy" onclick="copiarToken()">📋 Copiar Token</button>
+                    <a href="#" class="btn-redirect" id="redirectLink">🚀 Ir al Sistema con Token</a>
+                </div>
             </div>
         </div>
         
@@ -301,6 +384,7 @@
 
     <script>
         document.getElementById('btn_buscar').addEventListener('click', buscarHoteles);
+        document.getElementById('btn_token').addEventListener('click', generarToken);
         document.getElementById('search').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') buscarHoteles();
         });
@@ -316,10 +400,12 @@
             const loading = document.getElementById('loading');
             const errorDiv = document.getElementById('error');
             const resultsContainer = document.getElementById('results-container');
+            const tokenSection = document.getElementById('tokenSection');
             
             // Reset estados
             errorDiv.style.display = 'none';
             loading.style.display = 'block';
+            tokenSection.style.display = 'none';
             btnBuscar.disabled = true;
             btnBuscar.textContent = 'Buscando...';
             resultsContainer.innerHTML = '';
@@ -382,6 +468,63 @@
                 btnBuscar.disabled = false;
                 btnBuscar.textContent = 'Buscar Hoteles';
             }
+        }
+
+        async function generarToken() {
+            const btnToken = document.getElementById('btn_token');
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const tokenSection = document.getElementById('tokenSection');
+            const tokenValue = document.getElementById('tokenValue');
+            const redirectLink = document.getElementById('redirectLink');
+            
+            // Reset estados
+            errorDiv.style.display = 'none';
+            loading.style.display = 'block';
+            tokenSection.style.display = 'none';
+            btnToken.disabled = true;
+            btnToken.textContent = 'Generando...';
+            
+            try {
+                // Generar token sin parámetros de búsqueda
+                const respuesta = await fetch('buscar_hoteles.php?action=generarToken');
+                
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP: ${respuesta.status}`);
+                }
+                
+                const data = await respuesta.json();
+                
+                if (data.success && data.token) {
+                    // Mostrar token
+                    tokenValue.textContent = data.token;
+                    tokenSection.style.display = 'block';
+                    
+                    // Configurar enlace de redirección
+                    redirectLink.href = `cliente_api.php?action=resultados&token=${data.token}`;
+                    
+                } else {
+                    throw new Error(data.error || 'Error al generar token');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error al generar token: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                btnToken.disabled = false;
+                btnToken.textContent = 'Generar Token';
+            }
+        }
+
+        function copiarToken() {
+            const tokenValue = document.getElementById('tokenValue').textContent;
+            navigator.clipboard.writeText(tokenValue).then(() => {
+                alert('Token copiado al portapapeles');
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+            });
         }
         
         // Buscar automáticamente al cargar la página
