@@ -413,6 +413,16 @@
             background: #fee2e2;
         }
 
+        .action-view {
+            background: #f0f9ff;
+            color: var(--primary);
+            border: 1px solid #bae6fd;
+        }
+
+        .action-view:hover {
+            background: #e0f2fe;
+        }
+
         /* Estado vacío */
         .empty-state {
             text-align: center;
@@ -430,6 +440,82 @@
             font-size: 16px;
             margin-bottom: 20px;
             font-weight: 500;
+        }
+
+        /* Alerta de Token Generado */
+        .token-alert {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid #047857;
+        }
+
+        .token-alert h5 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-alert .token-display {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .token-alert .token-value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            color: white;
+        }
+
+        .token-alert .alert-close {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            float: right;
+            transition: var(--transition);
+        }
+
+        .token-alert .alert-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Estilos para mostrar tokens encriptados en la tabla */
+        .token-code-full {
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            border: 1px dashed #cbd5e1;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #475569;
+        }
+
+        .token-code-full:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
         }
 
         /* Responsive */
@@ -471,6 +557,15 @@
 
             .action-btn {
                 justify-content: center;
+                padding: 8px;
+            }
+
+            .token-alert {
+                padding: 15px;
+            }
+
+            .token-alert .token-value {
+                font-size: 12px;
                 padding: 8px;
             }
         }
@@ -535,6 +630,32 @@
     </header>
 
     <div class="container">
+        <!-- Mostrar alerta con token generado (si existe) -->
+        <?php if (isset($_SESSION['token_generado']) && isset($_SESSION['token_cliente_nombre'])): ?>
+            <div class="token-alert" id="tokenAlert">
+                <button type="button" class="alert-close" onclick="closeTokenAlert()">✕ Cerrar</button>
+                <h5>🎉 ¡Token Generado Exitosamente!</h5>
+                <div class="token-display">
+                    <p><strong>Cliente:</strong> <?= htmlspecialchars($_SESSION['token_cliente_nombre']) ?></p>
+                    <p><strong>Token Generado:</strong></p>
+                    <div class="token-value" id="tokenValue">
+                        <?= htmlspecialchars($_SESSION['token_generado']) ?>
+                    </div>
+                    <small>⚠️ ¡Guarda este token en un lugar seguro! Solo se mostrará esta vez.</small>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.3); color: white; border: 1px solid rgba(255,255,255,0.5);" onclick="copyToken()">
+                        📋 Copiar Token
+                    </button>
+                </div>
+            </div>
+        <?php 
+            // Limpiar la sesión después de mostrar
+            unset($_SESSION['token_generado']);
+            unset($_SESSION['token_cliente_nombre']);
+        endif; 
+        ?>
+
         <!-- Menú de Navegación -->
         <nav class="nav-menu">
             <a href="index.php?controller=hotel&action=index" class="nav-btn">
@@ -613,7 +734,7 @@
                 <div class="form-group">
                     <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius); padding: 15px; margin-bottom: 15px;">
                         <p style="color: #0369a1; margin: 0; font-size: 14px;">
-                            <strong>💡 Información:</strong> El token se generará automáticamente con formato seguro al guardar.
+                            <strong>🔒 Seguridad:</strong> El token se generará automáticamente y se mostrará una sola vez. Se almacenará encriptado en la base de datos.
                         </p>
                     </div>
                 </div>
@@ -621,7 +742,7 @@
                 <div class="form-actions">
                     <button type="submit" class="btn btn-success">
                         <i>🔑</i>
-                        Guardar Token
+                        Generar Token
                     </button>
                     <button type="button" id="cancelGenerate" class="btn btn-secondary">
                         <i>✕</i>
@@ -681,8 +802,8 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="token-code" title="<?= htmlspecialchars($token['token'] ?? '') ?>">
-                                        <?= htmlspecialchars(substr($token['token'] ?? '', 0, 20) . '...') ?>
+                                    <div class="token-code-full" title="Token encriptado - Haga clic para ver detalles">
+                                        🔒 <?= htmlspecialchars(substr($token['token'] ?? '', 0, 35)) ?>...
                                     </div>
                                 </td>
                                 <td>
@@ -702,6 +823,11 @@
                                 </td>
                                 <td>
                                     <div class="actions">
+                                        <a href="index.php?controller=tokenapi&action=view&id=<?= $token['id'] ?>" 
+                                           class="action-btn action-view">
+                                            <i>👁️</i>
+                                            Ver
+                                        </a>
                                         <a href="index.php?controller=tokenapi&action=edit&id=<?= $token['id'] ?>" 
                                            class="action-btn action-edit">
                                             <i>✏️</i>
@@ -738,15 +864,27 @@
             document.getElementById('generateForm').classList.remove('active');
         });
 
-        // Mostrar token completo al hacer click
-        document.querySelectorAll('.token-code').forEach(element => {
+        // Mostrar información del token encriptado
+        document.querySelectorAll('.token-code-full').forEach(element => {
             element.addEventListener('click', function() {
-                const fullToken = this.getAttribute('title');
-                if (fullToken && fullToken !== '') {
-                    alert('Token completo:\n\n' + fullToken);
-                }
+                alert('Token Encriptado\n\nEste token está almacenado de forma segura en la base de datos. Para ver los detalles completos del token encriptado, haga clic en "Ver".');
             });
         });
+
+        // Cerrar alerta de token generado
+        function closeTokenAlert() {
+            document.getElementById('tokenAlert').style.display = 'none';
+        }
+
+        // Copiar token al portapapeles
+        function copyToken() {
+            const tokenText = document.getElementById('tokenValue').textContent;
+            navigator.clipboard.writeText(tokenText).then(function() {
+                alert('Token copiado al portapapeles');
+            }, function() {
+                alert(' Error al copiar el token');
+            });
+        }
 
         // Validación del formulario
         document.querySelector('#generateForm form').addEventListener('submit', function(e) {
@@ -754,7 +892,7 @@
             
             if (!cliente) {
                 e.preventDefault();
-                alert('❌ Por favor seleccione un cliente API');
+                alert('Por favor seleccione un cliente API');
                 return;
             }
 
@@ -763,6 +901,14 @@
                 e.preventDefault();
             }
         });
+
+        // Auto-cerrar alerta después de 30 segundos
+        setTimeout(function() {
+            const tokenAlert = document.getElementById('tokenAlert');
+            if (tokenAlert) {
+                tokenAlert.style.display = 'none';
+            }
+        }, 30000);
     </script>
 </body>
 </html>

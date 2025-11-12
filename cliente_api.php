@@ -44,10 +44,73 @@
             opacity: 0.9;
         }
         
+        .token-validation-section {
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .token-form {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .token-input-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        
+        .token-input-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .token-input {
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .token-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn-validate {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-validate:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-validate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         .search-section {
             padding: 30px;
             background: #f8f9fa;
             border-bottom: 1px solid #e1e5e9;
+            display: none;
         }
         
         .search-form {
@@ -119,6 +182,7 @@
         
         .results-section {
             padding: 30px;
+            display: none;
         }
         
         .results-header {
@@ -194,6 +258,27 @@
             font-size: 14px;
             text-decoration: none;
             display: inline-block;
+        }
+
+        /* Estilos para mensajes de validación */
+        .validation-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .validation-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .validation-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
         .hotel-grid {
@@ -317,7 +402,22 @@
             <div class="subtitle">Encuentra los mejores hoteles en Huanta, Ayacucho</div>
         </header>
         
-        <div class="search-section">
+        <!-- Sección de validación de token -->
+        <div class="token-validation-section" id="tokenValidationSection">
+            <h2>🔐 Validación de Acceso</h2>
+            <p>Ingrese su token de acceso para utilizar el sistema</p>
+            <div class="token-form">
+                <div class="token-input-group">
+                    <label for="tokenInput">Token de acceso:</label>
+                    <input type="text" id="tokenInput" class="token-input" placeholder="Ingrese su token aquí">
+                </div>
+                <button class="btn-validate" id="btn_validar">Validar Token</button>
+                <div id="validationMessage"></div>
+            </div>
+        </div>
+        
+        <!-- Sección de búsqueda (oculta inicialmente) -->
+        <div class="search-section" id="searchSection">
             <div class="search-form">
                 <div class="form-group">
                     <label for="search">🔍 Buscar hotel:</label>
@@ -337,13 +437,13 @@
                 </div>
                 
                 <button class="btn-search" id="btn_buscar">Buscar Hoteles</button>
-                <button class="btn-token" id="btn_token">Generar Token</button>
+            
             </div>
         </div>
 
         <div class="token-section" id="tokenSection">
             <div class="token-info">
-                <strong>🔐 Token Generado Exitosamente</strong>
+                <strong>Token Generado Exitosamente</strong>
                 <div class="token-value" id="tokenValue"></div>
                 <div class="token-actions">
                     <button class="btn-copy" onclick="copiarToken()">📋 Copiar Token</button>
@@ -352,7 +452,7 @@
             </div>
         </div>
         
-        <div class="results-section">
+        <div class="results-section" id="resultsSection">
             <div class="results-header">
                 <div class="results-count">
                     Hoteles encontrados: <span id="contador">0</span>
@@ -383,6 +483,20 @@
     </div>
 
     <script>
+        // Elementos del DOM
+        const tokenValidationSection = document.getElementById('tokenValidationSection');
+        const searchSection = document.getElementById('searchSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const btnValidar = document.getElementById('btn_validar');
+        const tokenInput = document.getElementById('tokenInput');
+        const validationMessage = document.getElementById('validationMessage');
+        
+        // Event listeners
+        btnValidar.addEventListener('click', validarToken);
+        tokenInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') validarToken();
+        });
+        
         document.getElementById('btn_buscar').addEventListener('click', buscarHoteles);
         document.getElementById('btn_token').addEventListener('click', generarToken);
         document.getElementById('search').addEventListener('keypress', function(e) {
@@ -390,6 +504,66 @@
         });
         document.getElementById('category').addEventListener('change', buscarHoteles);
         document.getElementById('sort').addEventListener('change', buscarHoteles);
+        
+        // Función para validar token contra la base de datos
+        async function validarToken() {
+            const token = tokenInput.value.trim();
+            const btnValidar = document.getElementById('btn_validar');
+            
+            // Limpiar mensajes anteriores
+            validationMessage.innerHTML = '';
+            validationMessage.className = 'validation-message';
+            
+            if (!token) {
+                showValidationMessage(' Por favor, ingrese un token válido', 'error');
+                return;
+            }
+            
+            // Reset estados
+            btnValidar.disabled = true;
+            btnValidar.textContent = 'Validando...';
+            
+            try {
+                // Validar token contra la base de datos
+                const formData = new FormData();
+                formData.append('token', token);
+                formData.append('action', 'validarToken');
+                
+                const respuesta = await fetch('validar_token.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP: ${respuesta.status}`);
+                }
+                
+                const data = await respuesta.json();
+                
+                if (data.success) {
+                    showValidationMessage('Token válido - Acceso concedido', 'success');
+                    // Ocultar sección de validación y mostrar búsqueda
+                    tokenValidationSection.style.display = 'none';
+                    searchSection.style.display = 'block';
+                    resultsSection.style.display = 'block';
+                } else {
+                    showValidationMessage(' Token inválido o expirado', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showValidationMessage('Error al validar el token. Intente nuevamente.', 'error');
+            } finally {
+                btnValidar.disabled = false;
+                btnValidar.textContent = 'Validar Token';
+            }
+        }
+        
+        // Función para mostrar mensajes de validación
+        function showValidationMessage(message, type) {
+            validationMessage.textContent = message;
+            validationMessage.className = `validation-message validation-${type}`;
+        }
         
         async function buscarHoteles() {
             const searchTerm = document.getElementById('search').value;
@@ -526,12 +700,6 @@
                 console.error('Error al copiar: ', err);
             });
         }
-        
-        // Buscar automáticamente al cargar la página
-        window.addEventListener('load', function() {
-            // Puedes quitar esta línea si no quieres que busque automáticamente
-            // buscarHoteles();
-        });
     </script>
 </body>
 </html>

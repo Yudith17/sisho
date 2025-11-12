@@ -23,6 +23,43 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         <?php endif; ?>
 
+        <!-- Alerta especial cuando se genera un token -->
+        <?php if (isset($_SESSION['token_generado']) && isset($_SESSION['token_cliente_nombre'])): ?>
+            <div class="token-alert-success">
+                <div class="token-alert-header">
+                    <h3><i class="fas fa-shield-check"></i> ¡Token Generado Exitosamente!</h3>
+                    <button type="button" class="alert-close" onclick="closeTokenAlert()">✕</button>
+                </div>
+                <div class="token-alert-body">
+                    <div class="token-info">
+                        <p><strong>Cliente:</strong> <?= htmlspecialchars($_SESSION['token_cliente_nombre']) ?></p>
+                        <p><strong>Token Generado:</strong></p>
+                        <div class="token-value-container">
+                            <code class="token-value" id="tokenValue"><?= htmlspecialchars($_SESSION['token_generado']) ?></code>
+                            <button type="button" class="btn-copy-token" onclick="copyToken()" title="Copiar token">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="token-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>¡Importante!</strong> Este token solo se mostrará una vez. Guárdelo en un lugar seguro.
+                    </div>
+                </div>
+                <div class="token-alert-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeTokenAlert()">Continuar</button>
+                    <a href="index.php?controller=tokenapi&action=index" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Ver Todos los Tokens
+                    </a>
+                </div>
+            </div>
+            <?php 
+            // Limpiar la sesión después de mostrar
+            unset($_SESSION['token_generado']);
+            unset($_SESSION['token_cliente_nombre']);
+            ?>
+        <?php endif; ?>
+
         <form method="POST" action="index.php?controller=tokenapi&action=create">
             <div class="form-row">
                 <div class="form-group">
@@ -64,33 +101,50 @@ require_once __DIR__ . '/../layouts/header.php';
                 </div>
             </div>
 
-            <!-- Información mejorada del token -->
+            <!-- Información de seguridad mejorada -->
             <div class="form-group">
-                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius); padding: 20px; margin-bottom: 20px;">
-                    <h4 style="color: #0369a1; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-shield-alt"></i> Información del Token
-                    </h4>
-                    <div style="color: #075985;">
-                        <p style="margin-bottom: 10px;"><strong>Formato del token:</strong></p>
-                        <ul style="margin-left: 20px; margin-bottom: 15px;">
-                            <li>Prefijo: <code>cli_[ID]_</code> (identificación del cliente)</li>
-                            <li>Token seguro: 64 caracteres hexadecimales</li>
-                            <li>Ejemplo: <code>cli_15_a1b2c3d4e5f6...</code></li>
-                        </ul>
-                        <p style="margin: 0; font-style: italic;">
-                            El token se generará automáticamente al guardar y será único para cada cliente.
-                        </p>
+                <div class="security-info-card">
+                    <h4><i class="fas fa-lock"></i> Seguridad del Token</h4>
+                    <div class="security-features">
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>Token Único</strong>
+                                <span>Generado automáticamente para cada cliente</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>Encriptación Segura</strong>
+                                <span>Almacenado de forma encriptada en la base de datos</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>Visualización Única</strong>
+                                <span>El token completo solo se muestra una vez</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="token-format-info">
+                        <p><strong>Formato del token:</strong> <code>cli_[ID]_[token_aleatorio_64_caracteres]</code></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Vista previa del token (opcional) -->
-            <div class="form-group" id="token-preview" style="display: none;">
-                <label class="form-label">Vista previa del token:</label>
-                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius); padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; color: #475569;">
-                    <span id="preview-text">Se generará al seleccionar un cliente...</span>
+            <!-- Información del proceso -->
+            <div class="form-group">
+                <div class="process-info">
+                    <h5><i class="fas fa-info-circle"></i> Proceso de Generación</h5>
+                    <ol>
+                        <li>Seleccione un cliente API activo</li>
+                        <li>Se generará un token único y seguro</li>
+                        <li>El token se almacenará encriptado en la base de datos</li>
+                        <li>Se mostrará el token completo una sola vez para que lo guarde</li>
+                    </ol>
                 </div>
-                <span class="form-help">Esta es una vista previa. El token final puede variar.</span>
             </div>
 
             <div class="form-group" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -113,43 +167,67 @@ require_once __DIR__ . '/../layouts/header.php';
         
         if (!clienteValue) {
             e.preventDefault();
-            alert('❌ Por favor seleccione un cliente API');
+            showAlert('❌ Por favor seleccione un cliente API', 'error');
             clienteSelect.focus();
             return;
         }
 
         // Confirmación antes de generar
-        const confirmacion = confirm('¿Está seguro de generar un nuevo token para este cliente?');
+        const confirmacion = confirm('¿Está seguro de generar un nuevo token para este cliente?\n\n⚠️ El token se mostrará una sola vez. Asegúrese de guardarlo en un lugar seguro.');
         if (!confirmacion) {
             e.preventDefault();
         }
     });
 
-    // Vista previa del token (opcional)
-    document.getElementById('id_cliente_api').addEventListener('change', function() {
-        const clienteId = this.value;
-        const previewDiv = document.getElementById('token-preview');
-        const previewText = document.getElementById('preview-text');
-        
-        if (clienteId) {
-            // Mostrar formato esperado del token
-            previewText.textContent = `cli_${clienteId}_[token_secreto_generado]`;
-            previewDiv.style.display = 'block';
-        } else {
-            previewDiv.style.display = 'none';
+    // Cerrar alerta de token generado
+    function closeTokenAlert() {
+        const tokenAlert = document.querySelector('.token-alert-success');
+        if (tokenAlert) {
+            tokenAlert.style.display = 'none';
         }
-    });
+    }
 
-    // Mostrar/ocultar información adicional
-    document.addEventListener('DOMContentLoaded', function() {
-        const helpButtons = document.querySelectorAll('.help-trigger');
-        helpButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const helpText = this.nextElementSibling;
-                helpText.style.display = helpText.style.display === 'none' ? 'block' : 'none';
-            });
+    // Copiar token al portapapeles
+    function copyToken() {
+        const tokenText = document.getElementById('tokenValue').textContent;
+        navigator.clipboard.writeText(tokenText).then(function() {
+            showAlert('✅ Token copiado al portapapeles', 'success');
+        }).catch(function() {
+            // Fallback para navegadores antiguos
+            const textArea = document.createElement('textarea');
+            textArea.value = tokenText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showAlert('✅ Token copiado al portapapeles', 'success');
+            } catch (err) {
+                showAlert('❌ Error al copiar el token', 'error');
+            }
+            document.body.removeChild(textArea);
         });
-    });
+    }
+
+    // Función para mostrar alertas temporales
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-temporary`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+        `;
+        
+        document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('form'));
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+
+    // Auto-cerrar alerta del token después de 2 minutos por seguridad
+    setTimeout(function() {
+        closeTokenAlert();
+    }, 120000);
 </script>
 
 <style>
@@ -174,6 +252,15 @@ require_once __DIR__ . '/../layouts/header.php';
         border: 1px solid #fecaca;
     }
 
+    .alert-temporary {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: var(--shadow-lg);
+    }
+
     .form-help {
         display: block;
         font-size: 12px;
@@ -187,6 +274,236 @@ require_once __DIR__ . '/../layouts/header.php';
         border-radius: 4px;
         font-family: 'Courier New', monospace;
         color: #dc2626;
+    }
+
+    /* Estilos para la alerta de token generado */
+    .token-alert-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: var(--radius);
+        margin-bottom: 25px;
+        box-shadow: var(--shadow-lg);
+        border-left: 4px solid #047857;
+    }
+
+    .token-alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 20px 0 20px;
+    }
+
+    .token-alert-header h3 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-close {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: var(--transition);
+    }
+
+    .alert-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .token-alert-body {
+        padding: 20px;
+    }
+
+    .token-info {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+
+    .token-value-container {
+        position: relative;
+        margin: 10px 0;
+    }
+
+    .token-value {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 12px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        word-break: break-all;
+        color: white;
+        display: block;
+        border: 1px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-copy-token {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-copy-token:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .token-warning {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px 15px;
+        border-radius: 4px;
+        border-left: 3px solid #fbbf24;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .token-alert-actions {
+        padding: 0 20px 20px 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Estilos para la información de seguridad */
+    .security-info-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius);
+        padding: 20px;
+    }
+
+    .security-info-card h4 {
+        color: #1e293b;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .security-features {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .feature-item i {
+        color: #10b981;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .feature-item div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feature-item strong {
+        color: #1e293b;
+        font-size: 14px;
+    }
+
+    .feature-item span {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .token-format-info {
+        background: #f1f5f9;
+        padding: 12px;
+        border-radius: 4px;
+        border-left: 3px solid #3b82f6;
+    }
+
+    .token-format-info p {
+        margin: 0;
+        color: #475569;
+    }
+
+    /* Estilos para la información del proceso */
+    .process-info {
+        background: #fffbeb;
+        border: 1px solid #fef3c7;
+        border-radius: var(--radius);
+        padding: 20px;
+    }
+
+    .process-info h5 {
+        color: #92400e;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .process-info ol {
+        color: #92400e;
+        margin-left: 20px;
+    }
+
+    .process-info li {
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+        .token-alert-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .token-alert-actions {
+            flex-direction: column;
+        }
+
+        .token-alert-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .security-features {
+            gap: 15px;
+        }
+
+        .feature-item {
+            align-items: flex-start;
+        }
     }
 </style>
 

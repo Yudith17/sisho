@@ -1,18 +1,18 @@
 <?php
-// buscar_hoteles.php - CON CONTRASEÑA CORRECTA Y SISTEMA DE TOKENS
+// buscar_hoteles.php - SOLO CÓDIGO PHP, SIN HTML
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Configuración CORRECTA (password: 'root')
+// Configuración CORRECTA
 $host = 'localhost';
 $dbname = 'sisho';
 $username = 'root';
-$password = 'root';  // ← ESTA ES LA CONTRASEÑA CORRECTA
+$password = 'root';
 
 // Configuración del sistema de tokens
-$cliente_api_url = 'http://localhost/cliente_api/index.php'; // Ajusta la URL según tu configuración
+$cliente_api_url = 'http://localhost/cliente_api/index.php';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
@@ -25,6 +25,22 @@ try {
     
     // Función para validar y almacenar token en la base de datos
     function almacenarToken($pdo, $token, $datosBusqueda) {
+        // Primero verifica si la tabla existe
+        $tableCheck = $pdo->query("SHOW TABLES LIKE 'tokens_api'")->fetch();
+        
+        if (!$tableCheck) {
+            // Crear tabla si no existe
+            $createTable = "CREATE TABLE IF NOT EXISTS tokens_api (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                token VARCHAR(64) UNIQUE NOT NULL,
+                datos_busqueda TEXT,
+                fecha_creacion DATETIME,
+                fecha_expiracion DATETIME,
+                utilizado TINYINT DEFAULT 0
+            )";
+            $pdo->exec($createTable);
+        }
+        
         $sql = "INSERT INTO tokens_api (token, datos_busqueda, fecha_creacion, fecha_expiracion, utilizado) 
                 VALUES (:token, :datos_busqueda, NOW(), DATE_ADD(NOW(), INTERVAL 1 HOUR), 0)";
         
@@ -107,7 +123,7 @@ try {
         exit;
     }
     
-    // BÚSQUEDA LOCAL ORIGINAL (se mantiene igual)
+    // BÚSQUEDA LOCAL ORIGINAL
     $search = $_GET['search'] ?? '';
     $category = $_GET['category'] ?? '';
     $sort = $_GET['sort'] ?? 'name';
@@ -175,130 +191,10 @@ try {
         'success' => false,
         'error' => 'Error de base de datos: ' . $e->getMessage()
     ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Error general: ' . $e->getMessage()
+    ]);
 }
 ?>
-
-<!-- HTML FORM PARA BÚSQUEDA CON TOKEN (se puede incluir o usar por separado) -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscar Hoteles con Token</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { padding: 8px; width: 300px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .resultado { margin-top: 20px; padding: 15px; border-radius: 5px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .token-info { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <h1>Buscar Hoteles con Sistema de Tokens</h1>
-    
-    <form id="busquedaForm">
-        <div class="form-group">
-            <label for="search">Buscar (nombre, dirección o distrito):</label>
-            <input type="text" id="search" name="search" placeholder="Ej: Miraflores, Hotel Lima, etc.">
-        </div>
-        
-        <div class="form-group">
-            <label for="category">Categoría:</label>
-            <select id="category" name="category">
-                <option value="">Todas las categorías</option>
-                <option value="5 estrellas">5 estrellas</option>
-                <option value="4 estrellas">4 estrellas</option>
-                <option value="3 estrellas">3 estrellas</option>
-                <option value="2 estrellas">2 estrellas</option>
-                <option value="1 estrella">1 estrella</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="sort">Ordenar por:</label>
-            <select id="sort" name="sort">
-                <option value="name">Nombre (A-Z)</option>
-                <option value="name_desc">Nombre (Z-A)</option>
-                <option value="category">Categoría (Ascendente)</option>
-                <option value="category_desc">Categoría (Descendente)</option>
-            </select>
-        </div>
-        
-        <button type="button" onclick="buscarConToken()">Buscar con Token</button>
-        <button type="button" onclick="buscarSinToken()">Busqueda Rápida (Sin Token)</button>
-    </form>
-    
-    <div id="resultado"></div>
-    <div id="resultadosHoteles"></div>
-
-    <script>
-        function buscarConToken() {
-            const formData = new FormData(document.getElementById('busquedaForm'));
-            const params = new URLSearchParams(formData);
-            
-            document.getElementById('resultado').innerHTML = '<div class="token-info">Generando token y procesando búsqueda...</div>';
-            
-            fetch('<?php echo $_SERVER['PHP_SELF']; ?>?action=buscarConToken&' + params.toString())
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('resultado').innerHTML = 
-                            '<div class="success">' +
-                            '<strong>✓ Búsqueda exitosa</strong><br>' +
-                            'Token generado: ' + data.token + '<br>' +
-                            (data.message || '') +
-                            '</div>';
-                        
-                        // Redirigir a cliente_api para ver resultados
-                        if (data.redirect_url) {
-                            setTimeout(() => {
-                                window.location.href = data.redirect_url;
-                            }, 2000);
-                        }
-                    } else {
-                        document.getElementById('resultado').innerHTML = 
-                            '<div class="error"><strong>Error:</strong> ' + data.error + '</div>';
-                    }
-                })
-                .catch(error => {
-                    document.getElementById('resultado').innerHTML = 
-                        '<div class="error"><strong>Error de conexión:</strong> ' + error.message + '</div>';
-                });
-        }
-        
-        function buscarSinToken() {
-            const formData = new FormData(document.getElementById('busquedaForm'));
-            const params = new URLSearchParams(formData);
-            
-            fetch('<?php echo $_SERVER['PHP_SELF']; ?>?action=soloDatos&' + params.toString())
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        let html = '<h3>Resultados de Búsqueda (' + data.total + ' hoteles encontrados)</h3>';
-                        
-                        if (data.hotels.length > 0) {
-                            data.hotels.forEach(hotel => {
-                                html += '<div style="border:1px solid #ddd; padding:10px; margin:5px 0;">' +
-                                        '<strong>' + hotel.name + '</strong> - ' + hotel.category + '<br>' +
-                                        'Dirección: ' + hotel.address + ', ' + hotel.district +
-                                        '</div>';
-                            });
-                        } else {
-                            html += '<p>No se encontraron hoteles para tu búsqueda.</p>';
-                        }
-                        
-                        document.getElementById('resultadosHoteles').innerHTML = html;
-                    } else {
-                        document.getElementById('resultadosHoteles').innerHTML = 
-                            '<div class="error">Error: ' + data.error + '</div>';
-                    }
-                });
-        }
-    </script>
-</body>
-</html>

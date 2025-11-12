@@ -85,34 +85,11 @@ class TokenApi {
     }
 
     // MÉTODO MEJORADO: Generar token seguro único
-    public function generateToken($id_cliente_api = null) {
-        try {
-            // Validar que se proporcione un ID
-            if ($id_cliente_api === null || $id_cliente_api === '') {
-                throw new Exception("ID de cliente API es requerido para generar el token");
-            }
-
-            // Verificar que el cliente existe
-            $cliente = $this->findClienteApi($id_cliente_api);
-            if (!$cliente) {
-                throw new Exception("Cliente API no encontrado con ID: " . $id_cliente_api);
-            }
-
-            // Generar un token seguro único (64 caracteres)
-            $token = bin2hex(random_bytes(32));
-            
-            // Agregar prefijo con el ID del cliente para identificación
-            $prefix = 'cli_' . $id_cliente_api . '_';
-            $token = $prefix . $token;
-            
-            return $token;
-            
-        } catch (Exception $e) {
-            error_log("Error en TokenApi::generateToken: " . $e->getMessage());
-            throw new Exception("Error al generar token: " . $e->getMessage());
-        }
+    public function generateToken($id_cliente_api) {
+        // Generar un token más largo y seguro
+        $data = $id_cliente_api . microtime() . uniqid('', true) . random_bytes(32);
+        return bin2hex(random_bytes(32)) . hash('sha256', $data);
     }
-
     // MÉTODO ALTERNATIVO: Generar token con formato específico (como tu versión original)
     public function generateTokenWithFormat($id_cliente_api) {
         try {

@@ -20,15 +20,25 @@ class TokenApiController {
     public function create() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_cliente_api = $_POST['id_cliente_api'] ?? null;
-            $estado = $_POST['estado'] ?? '1'; // Por defecto activo
+            $estado = $_POST['estado'] ?? '1';
             
-            // Generar el token
-            $token = $this->tokenApiModel->generateToken($id_cliente_api);
+            // Generar token hexadecimal de 64 caracteres
+            $token_original = bin2hex(random_bytes(32)); // 32 bytes = 64 caracteres hex
             
-            // Crear el registro
-            $success = $this->tokenApiModel->create($id_cliente_api, $token, $estado);
+            // Encriptar el token para almacenar
+            $token_encriptado = password_hash($token_original, PASSWORD_DEFAULT);
+            
+            // Crear el registro con el token encriptado
+            $success = $this->tokenApiModel->create($id_cliente_api, $token_encriptado, $estado);
             
             if ($success) {
+                // Guardar el token original en sesión para mostrarlo una vez
+                $_SESSION['token_generado'] = $token_original;
+                
+                // Obtener nombre del cliente para mostrar
+                $cliente = $this->clientApiModel->find($id_cliente_api);
+                $_SESSION['token_cliente_nombre'] = $cliente['razon_social'] ?? $cliente['nombre'] ?? 'Cliente';
+                
                 header("Location: index.php?controller=tokenapi&action=index");
                 exit;
             }
