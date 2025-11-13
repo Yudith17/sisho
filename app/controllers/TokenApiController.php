@@ -22,11 +22,9 @@ class TokenApiController {
             $id_cliente_api = $_POST['id_cliente_api'] ?? null;
             $estado = $_POST['estado'] ?? '1';
             
-            // Generar token hexadecimal de 64 caracteres
-            $token_original = bin2hex(random_bytes(32)); // 32 bytes = 64 caracteres hex
             
-            // Encriptar el token para almacenar
-            $token_encriptado = password_hash($token_original, PASSWORD_DEFAULT);
+$token_original = bin2hex(random_bytes(32)); // 32 bytes = 64 caracteres hex
+$token_encriptado = password_hash($token_original, PASSWORD_DEFAULT);
             
             // Crear el registro con el token encriptado
             $success = $this->tokenApiModel->create($id_cliente_api, $token_encriptado, $estado);

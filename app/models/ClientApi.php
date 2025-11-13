@@ -106,4 +106,31 @@ class ClientApi {
             return false;
         }
     }
+    // En SISHO - models/TokenApi.php
+public function validateTokenByOriginal($tokenOriginal) {
+    try {
+        // Buscar todos los tokens activos
+        $stmt = $this->db->prepare("
+            SELECT t.*, c.razon_social, c.estado as cliente_estado 
+            FROM Token t 
+            LEFT JOIN Cliente_Api c ON t.Id_cliente_Api = c.id 
+            WHERE t.Estado = 1
+        ");
+        $stmt->execute();
+        $tokens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Verificar cada token con password_verify
+        foreach ($tokens as $tokenData) {
+            if (password_verify($tokenOriginal, $tokenData['Token'])) {
+                return $tokenData;
+            }
+        }
+        
+        return false;
+        
+    } catch (PDOException $e) {
+        error_log("Error en validateTokenByOriginal: " . $e->getMessage());
+        return false;
+    }
+}
 }
