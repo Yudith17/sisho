@@ -1,18 +1,21 @@
 RewriteEngine On
 
-# 1. PERMITIR ACCESO DIRECTO A ARCHIVOS EXISTENTES
+# 1. REDIRECCIÓN A HTTPS (opcional, si usas SSL)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# 2. PERMITIR ACCESO DIRECTO A ARCHIVOS EXISTENTES
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# 2. RUTAS PÚBLICAS ESPECÍFICAS (sin pasar por index.php)
-RewriteRule ^cliente_api\.php$ - [L]
-RewriteRule ^buscar_hoteles\.php$ - [L]
-RewriteRule ^debug_busqueda\.php$ - [L]
-RewriteRule ^login\.php$ - [L]  # <- AGREGAR ESTA LÍNEA
+# 3. EXCLUIR ARCHIVOS PHP ESPECÍFICOS DEL ROUTING MVC
+RewriteRule ^(cliente_api\.php|buscar_hoteles\.php|debug_busqueda\.php|login\.php)$ - [L]
+
+# 4. EXCLUIR DIRECTORIO API PÚBLICO
 RewriteRule ^api/public/ - [L]
 
-# 4. RUTAS DEL SISTEMA MVC (pasan por index.php)
+# 5. RUTAS DEL SISTEMA MVC
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
